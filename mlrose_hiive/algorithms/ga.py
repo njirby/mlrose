@@ -45,12 +45,26 @@ def _genetic_alg_select_parents(pop_size, problem,
     return p1, p2
 
 
+def _is_alg_done(fitness_curve, max_attempts_reached, early_stopping):
+    if fitness_curve is None or early_stopping is None:
+        return max_attempts_reached
+    if len(fitness_curve) < early_stopping:
+        return False
+    fitness_scores = [f[0] for f in fitness_curve]
+    most_recent_fitness_scores = fitness_scores[-early_stopping:]
+    # Check if last early_stopping number of fitness scores are the same
+    stop =  all(val == most_recent_fitness_scores[0] for val in most_recent_fitness_scores)
+    if stop:
+        print(f'Stopping early at iteration {len(fitness_scores)}. Converged on fitness score: {most_recent_fitness_scores[0]}')
+    return stop
+
+
 @short_name('ga')
 def genetic_alg(problem, pop_size=200, pop_breed_percent=0.75, elite_dreg_ratio=0.99,
                 minimum_elites=0, minimum_dregs=0, mutation_prob=0.1,
                 max_attempts=10, max_iters=np.inf, curve=False, random_state=None,
                 state_fitness_callback=None, callback_user_info=None,
-                hamming_factor=0.0, hamming_decay_factor=None):
+                hamming_factor=0.0, hamming_decay_factor=None, early_stopping=None):
     """Use a standard genetic algorithm to find the optimum for a given
     optimization problem.
     Parameters
@@ -229,7 +243,7 @@ def genetic_alg(problem, pop_size=200, pop_breed_percent=0.75, elite_dreg_ratio=
             max_attempts_reached = (attempts == max_attempts) or (iters == max_iters) or problem.can_stop()
             continue_iterating = state_fitness_callback(iteration=iters,
                                                         attempt=attempts + 1,
-                                                        done=max_attempts_reached,
+                                                        done=_is_alg_done(fitness_curve=fitness_curve, max_attempts_reached=max_attempts_reached, early_stopping=early_stopping),
                                                         state=problem.get_state(),
                                                         fitness=problem.get_adjusted_fitness(),
                                                         fitness_evaluations=problem.fitness_evaluations,

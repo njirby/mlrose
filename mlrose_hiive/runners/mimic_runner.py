@@ -25,13 +25,15 @@ Example usage:
 class MIMICRunner(_RunnerBase):
 
     def __init__(self, problem, experiment_name, seed, iteration_list, population_sizes,
-                 keep_percent_list, max_attempts=500, generate_curves=True, use_fast_mimic=False, **kwargs):
+                 keep_percent_list, max_attempts=500, generate_curves=True, use_fast_mimic=False,
+                 early_stopping_iterations = None, **kwargs):
         super().__init__(problem=problem, experiment_name=experiment_name, seed=seed, iteration_list=iteration_list,
                          max_attempts=max_attempts, generate_curves=generate_curves,
                          **kwargs)
         self.keep_percent_list = keep_percent_list
         self.population_sizes = population_sizes
         self._use_fast_mimic = None
+        self.early_stopping_iterations = early_stopping_iterations
         if hasattr(problem, 'set_mimic_fast_mode') and callable(getattr(problem, 'set_mimic_fast_mode')):
             self._use_fast_mimic = use_fast_mimic
             problem.set_mimic_fast_mode(use_fast_mimic)
@@ -44,4 +46,5 @@ class MIMICRunner(_RunnerBase):
     def run(self):
         return super().run_experiment_(algorithm=mlrose_hiive.mimic,
                                        pop_size=('Population Size', self.population_sizes),
-                                       keep_pct=('Keep Percent', self.keep_percent_list))
+                                       keep_pct=('Keep Percent', self.keep_percent_list),
+                                       early_stopping=('Early Stopping Iterations', self.early_stopping_iterations))

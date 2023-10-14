@@ -26,12 +26,14 @@ Example usage:
 class RHCRunner(_RunnerBase):
 
     def __init__(self, problem, experiment_name, seed, iteration_list, restart_list,
-                 max_attempts=500, generate_curves=True, **kwargs):
+                 max_attempts=500, generate_curves=True, early_stopping_iterations = None, **kwargs):
         super().__init__(problem=problem, experiment_name=experiment_name, seed=seed, iteration_list=iteration_list,
                          max_attempts=max_attempts, generate_curves=generate_curves,
                          **kwargs)
         self.restart_list = restart_list
+        self.early_stopping_iterations= early_stopping_iterations
 
     def run(self):
         return super().run_experiment_(algorithm=mlrose_hiive.random_hill_climb,
-                                       restarts=('Restarts', self.restart_list))
+                                       restarts=('Restarts', self.restart_list),
+                                       early_stopping=('Early Stopping Iterations', self.early_stopping_iterations))

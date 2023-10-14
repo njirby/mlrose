@@ -9,10 +9,21 @@ import numpy as np
 from mlrose_hiive.decorators import short_name
 
 
+def _is_alg_done(fitness_curve, max_attempts_reached, early_stopping):
+    if fitness_curve is None or early_stopping is None:
+        return max_attempts_reached
+    if len(fitness_curve) < early_stopping:
+        return False
+    fitness_scores = [f[0] for f in fitness_curve]
+    most_recent_fitness_scores = fitness_scores[-early_stopping:]
+    # Check if last early_stopping number of fitness scores are the same
+    return all(val == most_recent_fitness_scores[0] for val in most_recent_fitness_scores)
+
+
 @short_name('hc')
 def hill_climb(problem, max_iters=np.inf, restarts=0, init_state=None,
                curve=False, random_state=None,
-               state_fitness_callback=None, callback_user_info=None):
+               state_fitness_callback=None, callback_user_info=None, early_stopping=None):
     """Use standard hill climbing to find the optimum for a given
     optimization problem.
     Parameters
@@ -110,7 +121,7 @@ def hill_climb(problem, max_iters=np.inf, restarts=0, init_state=None,
                 max_attempts_reached = (iters == max_iters) or problem.can_stop()
                 continue_iterating = state_fitness_callback(iteration=iters,
                                                             attempt=None,
-                                                            done=max_attempts_reached,
+                                                            done=_is_alg_done(fitness_curve=fitness_curve, max_attempts_reached=max_attempts_reached, early_stopping=early_stopping),
                                                             state=problem.get_state(),
                                                             fitness=problem.get_adjusted_fitness(),
                                                             curve=np.asarray(fitness_curve) if curve else None,
